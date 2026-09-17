@@ -1,0 +1,10 @@
+# build output
+bin/
+obj/
+
+# published copy the desktop shortcut points at
+app/
+
+# local user settings
+*.user
+.vs/
