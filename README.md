@@ -12,6 +12,14 @@ For a copy you can pin to the taskbar:
 
 then make a shortcut to `app\TodoApp.exe`.
 
+if you want to make a test environment run
+
+    dotnet run --project <path to todolist-sparse>\TodoApp.csproj --launch-profile test
+
+where the data can be reset with
+
+    Remove-Item -Recurse "$env:APPDATA\SimpleTodo-test"
+
 ## How to use:
 Shows all tasks in a simple list with due dates. Blue tasks are recurring, orange are near due, red are overdue. Press the checkbox on the left to mark a task as done; if it is a one time task checking it off will get moved to the archive, if it is recurring it will come back after the interval you set it to come back at (can archive recurring tasks in File -> Recurring tasks).
 
