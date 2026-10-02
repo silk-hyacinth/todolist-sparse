@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -23,6 +24,11 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+
+        // Say so in the title when working on some other folder (e.g. test data),
+        // so a test window can't be mistaken for the real list.
+        if (!Storage.IsDefaultFolder)
+            Title += " — " + Path.GetFileName(Path.TrimEndingDirectorySeparator(Storage.Folder));
         foreach (var item in Sorted(Storage.Load<TodoItem>(Storage.TodoFile)))
             _items.Add(item);
         foreach (var task in Storage.Load<RecurringTask>(Storage.RecurringFile))

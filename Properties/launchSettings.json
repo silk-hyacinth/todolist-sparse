@@ -1,0 +1,13 @@
+{
+  "profiles": {
+    "TodoApp": {
+      "commandName": "Project"
+    },
+    "test": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "SIMPLETODO_DIR": "%APPDATA%/SimpleTodo-test"
+      }
+    }
+  }
+}

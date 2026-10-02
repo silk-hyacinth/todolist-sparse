@@ -6,12 +6,17 @@ namespace TodoApp;
 // Plain JSON files under %APPDATA%\SimpleTodo.
 public static class Storage
 {
+    private static readonly string DefaultFolder = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "SimpleTodo");
+
     // SIMPLETODO_DIR redirects storage elsewhere, so testing never touches real data.
     public static readonly string Folder =
         Environment.GetEnvironmentVariable("SIMPLETODO_DIR") is { Length: > 0 } custom
             ? custom
-            : Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "SimpleTodo");
+            : DefaultFolder;
+
+    public static bool IsDefaultFolder => string.Equals(
+        Path.TrimEndingDirectorySeparator(Path.GetFullPath(Folder)), DefaultFolder, StringComparison.OrdinalIgnoreCase);
 
     public static readonly string TodoFile = Path.Combine(Folder, "todos.json");
     public static readonly string ArchiveFile = Path.Combine(Folder, "archive.json");
