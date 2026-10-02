@@ -41,4 +41,4 @@ Three JSON files in `%APPDATA%\SimpleTodo`:
 - `recurring.json` — recurring tasks
 - `archive.json` — completed items
 
-if you want it somewhere else, set `SIMPLETODO_DIR` to point somewhere else.
+if you want it somewhere else, set an environment variable `SIMPLETODO_DIR` to point somewhere else.
