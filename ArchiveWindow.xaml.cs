@@ -14,7 +14,7 @@ public partial class ArchiveWindow : Window
         _onRestore = onRestore;
 
         // Most recently completed first.
-        foreach (var item in Storage.Load(Storage.ArchiveFile)
+        foreach (var item in Storage.Load<TodoItem>(Storage.ArchiveFile)
                      .OrderByDescending(i => i.CompletedAt ?? DateTime.MinValue))
             _archived.Add(item);
 

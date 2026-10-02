@@ -15,28 +15,29 @@ public static class Storage
 
     public static readonly string TodoFile = Path.Combine(Folder, "todos.json");
     public static readonly string ArchiveFile = Path.Combine(Folder, "archive.json");
+    public static readonly string RecurringFile = Path.Combine(Folder, "recurring.json");
 
     private static readonly JsonSerializerOptions Options = new() { WriteIndented = true };
 
-    public static List<TodoItem> Load(string path)
+    public static List<T> Load<T>(string path)
     {
         try
         {
-            if (!File.Exists(path)) return new List<TodoItem>();
+            if (!File.Exists(path)) return new List<T>();
             var json = File.ReadAllText(path);
-            if (string.IsNullOrWhiteSpace(json)) return new List<TodoItem>();
-            return JsonSerializer.Deserialize<List<TodoItem>>(json) ?? new List<TodoItem>();
+            if (string.IsNullOrWhiteSpace(json)) return new List<T>();
+            return JsonSerializer.Deserialize<List<T>>(json) ?? new List<T>();
         }
         catch (Exception)
         {
             // Unreadable or corrupt file: keep the old copy around and start fresh
             // rather than blowing up on launch.
             TryBackup(path);
-            return new List<TodoItem>();
+            return new List<T>();
         }
     }
 
-    public static void Save(string path, IEnumerable<TodoItem> items)
+    public static void Save<T>(string path, IEnumerable<T> items)
     {
         Directory.CreateDirectory(Folder);
         var temp = path + ".tmp";
@@ -44,9 +45,9 @@ public static class Storage
         File.Move(temp, path, overwrite: true);
     }
 
-    public static void Append(string path, TodoItem item)
+    public static void Append<T>(string path, T item)
     {
-        var items = Load(path);
+        var items = Load<T>(path);
         items.Add(item);
         Save(path, items);
     }

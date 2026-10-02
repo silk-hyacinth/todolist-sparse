@@ -4,6 +4,9 @@
              xmlns:local="clr-namespace:TodoApp"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-         
+        <!-- Recurring tasks' date line: a lavender-cyan, deep enough to read on white. -->
+        <SolidColorBrush x:Key="RecurringAccent" Color="#7487CC"/>
+
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
     </Application.Resources>
 </Application>

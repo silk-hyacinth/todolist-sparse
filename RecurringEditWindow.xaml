@@ -1,0 +1,21 @@
+<Window x:Class="TodoApp.RecurringEditWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Edit recurring task" Height="170" Width="340"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize">
+    <StackPanel Margin="10">
+        <TextBlock Text="Title" FontSize="10" Foreground="Gray"/>
+        <TextBox x:Name="TitleBox" VerticalContentAlignment="Center" Margin="0,2,0,8"/>
+
+        <TextBlock Text="Starts / repeats" FontSize="10" Foreground="Gray"/>
+        <StackPanel Orientation="Horizontal" Margin="0,2,0,10">
+            <DatePicker x:Name="StartBox" Width="130"/>
+            <ComboBox x:Name="FrequencyBox" Width="90" Margin="4,0,0,0"/>
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="Cancel" Width="65" IsCancel="True"/>
+            <Button Content="Save" Width="65" Margin="6,0,0,0" IsDefault="True" Click="Save_Click"/>
+        </StackPanel>
+    </StackPanel>
+</Window>

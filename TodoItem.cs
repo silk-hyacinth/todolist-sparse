@@ -32,14 +32,21 @@ public class TodoItem : INotifyPropertyChanged
     // Only set when the item is archived.
     public DateTime? CompletedAt { get; set; }
 
+    // Only set on the archive record of a removed recurring task, so it can be
+    // restored as recurring on the same schedule. Null for ordinary tasks.
+    public Frequency? Recurs { get; set; }
+    public DateTime? RecursFrom { get; set; }
+
     [JsonIgnore]
     public string DueText => Dates.Format(_due, _hasTime);
 
     [JsonIgnore]
-    public string ArchiveText =>
-        "completed on: "
-        + (CompletedAt is null ? "not recorded" : Dates.Stamp(CompletedAt.Value))
-        + "  ·  due " + DueText;
+    public string ArchiveText => Recurs is { } frequency
+        ? "removed on: " + StampText + "  ·  repeated " + frequency.Describe()
+        : "completed on: " + StampText + "  ·  due " + DueText;
+
+    private string StampText =>
+        CompletedAt is null ? "not recorded" : Dates.Stamp(CompletedAt.Value);
 
     // Muted enough not to shout, dark enough to read on white.
     private static readonly Brush SoonBrush = Freeze(Color.FromRgb(0xC2, 0x8A, 0x3C));
