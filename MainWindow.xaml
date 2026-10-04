@@ -18,8 +18,8 @@
 
         <DockPanel Margin="10">
 
-            <!-- add row: for a repeating task the date is when it starts, and the
-                 time box is swapped for how often it repeats -->
+            <!-- add row: the date and time are when a one-off task is due, or when a
+                 repeating one starts and the time of day it comes back -->
             <Grid DockPanel.Dock="Top" Margin="0,0,0,8">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -31,17 +31,12 @@
                 <TextBox x:Name="NewTitle" Grid.Column="0" VerticalContentAlignment="Center"
                          KeyDown="NewEntry_KeyDown"/>
                 <DatePicker x:Name="NewDue" Grid.Column="1" Width="110" Margin="4,0,0,0"
-                            ToolTip="Due date, or the start date of a repeating task (blank = today)"/>
-                <!-- time and frequency share a slot of the same width, so nothing jumps -->
-                <TextBox x:Name="NewTime" Grid.Column="2" Width="75" Margin="4,0,0,0"
+                            ToolTip="Due date, or when a repeating task starts (blank = today)"/>
+                <TextBox x:Name="NewTime" Grid.Column="2" Width="60" Margin="4,0,0,0"
                          VerticalContentAlignment="Center" KeyDown="NewEntry_KeyDown"
-                         ToolTip="Time of day, e.g. 14:30"/>
-                <ComboBox x:Name="NewFrequency" Grid.Column="2" Width="75" Margin="4,0,0,0"
-                          Visibility="Collapsed"/>
-                <CheckBox x:Name="NewRecurring" Grid.Column="3" Content="repeat"
-                          VerticalAlignment="Center" Margin="8,0,0,0"
-                          ToolTip="Make this a recurring task"
-                          Checked="NewRecurring_Changed" Unchecked="NewRecurring_Changed"/>
+                         ToolTip="Time of day, e.g. 14:30. For a repeating task, the time it comes back."/>
+                <ComboBox x:Name="NewRepeat" Grid.Column="3" Width="80" Margin="4,0,0,0"
+                          ToolTip="How often it repeats"/>
                 <Button Grid.Column="4" Content="Add" Width="45" Margin="6,0,0,0" Click="Add_Click"/>
             </Grid>
 

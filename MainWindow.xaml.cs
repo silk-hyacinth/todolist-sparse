@@ -18,8 +18,12 @@ public partial class MainWindow : Window
     // The recurring tasks currently due; these sit at the top of the list.
     private readonly ListCollectionView _recurringDue;
 
-    private readonly DispatcherTimer _clock = new() { Interval = TimeSpan.FromMinutes(10) };
-    private DateTime _today = DateTime.Today;
+    private readonly DispatcherTimer _clock = new() { Interval = TimeSpan.FromMinutes(1) };
+
+    // The next moment any recurring task comes due or starts. Nothing about them
+    // changes on its own before then, so the list only needs refreshing once the
+    // clock passes it.
+    private DateTime _nextRecurringChange;
 
     public MainWindow()
     {
@@ -51,9 +55,9 @@ public partial class MainWindow : Window
             new CollectionContainer { Collection = _items },
         };
 
-        NewFrequency.ItemsSource = Enum.GetValues<Frequency>();
-        NewFrequency.SelectedIndex = 0;
-        UpdateNote();
+        NewRepeat.ItemsSource = new List<RepeatOption> { RepeatOption.Once }.Concat(RepeatOption.Frequencies).ToList();
+        NewRepeat.SelectedIndex = 0;
+        RefreshRecurring();
 
         // Due-date colours and recurring resets both depend on the clock, so
         // nudge them along if the app is left open, and check again whenever
@@ -61,10 +65,10 @@ public partial class MainWindow : Window
         _clock.Tick += (_, _) =>
         {
             foreach (var item in _items) item.RefreshDue();
-            CheckDayRollover();
+            CheckRecurringClock();
         };
         _clock.Start();
-        Activated += (_, _) => CheckDayRollover();
+        Activated += (_, _) => CheckRecurringClock();
     }
 
     private static IEnumerable<TodoItem> Sorted(IEnumerable<TodoItem> items) =>
@@ -84,20 +88,19 @@ public partial class MainWindow : Window
         foreach (var item in sorted) _items.Add(item);
     }
 
-    // Recurring tasks come due at midnight, so a checked-off or not-yet-started
-    // task can only appear once the date has changed.
-    private void CheckDayRollover()
+    private void CheckRecurringClock()
     {
-        if (DateTime.Today == _today) return;
-        _today = DateTime.Today;
-        RefreshRecurring();
+        if (DateTime.Now >= _nextRecurringChange) RefreshRecurring();
     }
 
-    // Re-applies the due filter and sort after anything changes.
+    // Re-applies the due filter and sort, and works out when to next look. Call
+    // after any change to a recurring task.
     private void RefreshRecurring()
     {
+        var now = DateTime.Now;
         foreach (var task in _recurring) task.RefreshStatus();
         _recurringDue.Refresh();
+        _nextRecurringChange = _recurring.Select(t => t.NextOccurrenceAt(now)).DefaultIfEmpty(DateTime.MaxValue).Min();
         UpdateNote();
     }
 
@@ -108,64 +111,52 @@ public partial class MainWindow : Window
         if (e.Key == Key.Enter) AddItem();
     }
 
-    private void NewRecurring_Changed(object sender, RoutedEventArgs e)
-    {
-        var recurring = NewRecurring.IsChecked == true;
-        NewTime.Visibility = recurring ? Visibility.Collapsed : Visibility.Visible;
-        NewFrequency.Visibility = recurring ? Visibility.Visible : Visibility.Collapsed;
-    }
-
     private void AddItem()
     {
         var title = NewTitle.Text.Trim();
         if (title.Length == 0) return;
 
-        if (NewRecurring.IsChecked == true)
+        if (!Dates.TryParseTime(NewTime.Text, out var time))
         {
+            MessageBox.Show(this, "Couldn't read that time. Try something like 14:30.", "Todo");
+            return;
+        }
+
+        if (((RepeatOption)NewRepeat.SelectedItem).Frequency is { } frequency)
+        {
+            // A repeating task with no date starts today.
             _recurring.Add(new RecurringTask
             {
                 Title = title,
-                Frequency = (Frequency)NewFrequency.SelectedItem,
-                Start = NewDue.SelectedDate ?? DateTime.Today,
+                Frequency = frequency,
+                Start = Dates.Combine(NewDue.SelectedDate ?? DateTime.Today, time)!.Value,
+                HasTime = time is not null,
             });
+            RefreshRecurring();
         }
         else
         {
-            if (!TryReadDue(out var due, out var hasTime)) return;
-            InsertSorted(new TodoItem { Title = title, Due = due, HasTime = hasTime });
+            // A time on its own has nothing to hang off, so a one-off needs a date too.
+            if (time is not null && NewDue.SelectedDate is null)
+            {
+                MessageBox.Show(this, "Pick a date to go with that time.", "Todo");
+                return;
+            }
+            InsertSorted(new TodoItem
+            {
+                Title = title,
+                Due = Dates.Combine(NewDue.SelectedDate, time),
+                HasTime = time is not null,
+            });
         }
 
         NewTitle.Clear();
         NewTime.Clear();
         NewDue.SelectedDate = null;
         // Back to a one-off, so the next thing typed doesn't repeat by accident.
-        NewRecurring.IsChecked = false;
-        NewFrequency.SelectedIndex = 0;
+        NewRepeat.SelectedIndex = 0;
         NewTitle.Focus();
         Save();
-    }
-
-    private bool TryReadDue(out DateTime? due, out bool hasTime)
-    {
-        due = null;
-        hasTime = false;
-
-        if (!Dates.TryParseTime(NewTime.Text, out var time))
-        {
-            MessageBox.Show(this, "Couldn't read that time. Try something like 14:30.", "Todo");
-            return false;
-        }
-
-        // A time on its own has nothing to hang off, so it needs a date too.
-        if (time is not null && NewDue.SelectedDate is null)
-        {
-            MessageBox.Show(this, "Pick a date to go with that time.", "Todo");
-            return false;
-        }
-
-        due = Dates.Combine(NewDue.SelectedDate, time);
-        hasTime = time is not null;
-        return true;
     }
 
     private void Edit_Click(object sender, RoutedEventArgs e)
@@ -240,9 +231,14 @@ public partial class MainWindow : Window
     private void Restore(TodoItem item)
     {
         if (item.Recurs is not null)
+        {
             _recurring.Add(RecurringTask.FromArchive(item));
+            RefreshRecurring();
+        }
         else
+        {
             InsertSorted(item);
+        }
         Save();
     }
 

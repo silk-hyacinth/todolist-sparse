@@ -11,9 +11,10 @@ public partial class RecurringEditWindow : Window
         InitializeComponent();
         _task = task;
         TitleBox.Text = task.Title;
-        FrequencyBox.ItemsSource = Enum.GetValues<Frequency>();
-        FrequencyBox.SelectedItem = task.Frequency;
-        StartBox.SelectedDate = task.Start;
+        FrequencyBox.ItemsSource = RepeatOption.Frequencies;
+        FrequencyBox.SelectedItem = new RepeatOption(task.Frequency);
+        StartBox.SelectedDate = task.Start.Date;
+        TimeBox.Text = Dates.TimeText(task.Start, task.HasTime);
         TitleBox.Focus();
         TitleBox.SelectAll();
     }
@@ -33,9 +34,16 @@ public partial class RecurringEditWindow : Window
             return;
         }
 
+        if (!Dates.TryParseTime(TimeBox.Text, out var time))
+        {
+            MessageBox.Show(this, "Couldn't read that time. Try something like 5:00.", "Edit recurring task");
+            return;
+        }
+
         _task.Title = title;
-        _task.Frequency = (Frequency)FrequencyBox.SelectedItem;
-        _task.Start = start;
+        _task.Frequency = ((RepeatOption)FrequencyBox.SelectedItem).Frequency!.Value;
+        _task.Start = Dates.Combine(start, time)!.Value;
+        _task.HasTime = time is not null;
         DialogResult = true;
     }
 }

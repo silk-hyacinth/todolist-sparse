@@ -25,7 +25,7 @@ Shows all tasks in a simple list with due dates. Blue tasks are recurring, orang
 
 <img width="359" height="392" alt="Screenshot 2026-10-02 162318" src="https://github.com/user-attachments/assets/41c198dc-49fe-4608-9612-67d3496fff15" />
 
-To set a date and time, select a date in the calendar and type the time in the box to its right. If you don't want a due date and/or time, just leave the respective fields blank. Click the repeat box to make the task recurring.
+To set a date and time, select a date in the calendar and type the time in the box to its right. If you don't want a due date and/or time, just leave the respective fields blank. To make the task recurring, pick how often it repeats from the dropdown (once / daily / weekly / monthly / yearly). For a recurring task, the date is when it starts (blank = today) and the time is when it comes back each time (blank = midnight), e.g. daily at 5:00 means checking it off at 2am counts for the night before and it comes back at 5am.
 
 <img width="344" height="144" alt="Screenshot 2026-10-02 161826" src="https://github.com/user-attachments/assets/99a9a075-20e1-4b61-ac05-0e2323bdbe50" />
 

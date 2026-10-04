@@ -7,9 +7,11 @@
         <TextBlock Text="Title" FontSize="10" Foreground="Gray"/>
         <TextBox x:Name="TitleBox" VerticalContentAlignment="Center" Margin="0,2,0,8"/>
 
-        <TextBlock Text="Starts / repeats" FontSize="10" Foreground="Gray"/>
+        <TextBlock Text="Starts / time it comes back / repeats" FontSize="10" Foreground="Gray"/>
         <StackPanel Orientation="Horizontal" Margin="0,2,0,10">
-            <DatePicker x:Name="StartBox" Width="130"/>
+            <DatePicker x:Name="StartBox" Width="120"/>
+            <TextBox x:Name="TimeBox" Width="60" Margin="4,0,0,0" VerticalContentAlignment="Center"
+                     ToolTip="Time of day it comes back, e.g. 5:00 (blank = midnight)"/>
             <ComboBox x:Name="FrequencyBox" Width="90" Margin="4,0,0,0"/>
         </StackPanel>
 
