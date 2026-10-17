@@ -7,6 +7,9 @@
         <!-- Recurring tasks' date line: a lavender-cyan, deep enough to read on white. -->
         <SolidColorBrush x:Key="RecurringAccent" Color="#7487CC"/>
 
+        <!-- Pinned tasks' date line, whatever kind of task they are. -->
+        <SolidColorBrush x:Key="PinnedAccent" Color="#9A5CC6"/>
+
         <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
     </Application.Resources>
 </Application>

@@ -9,6 +9,7 @@ public class TodoItem : INotifyPropertyChanged
     private string _title = "";
     private DateTime? _due;
     private bool _hasTime;
+    private bool _pinned;
 
     public string Title
     {
@@ -27,6 +28,13 @@ public class TodoItem : INotifyPropertyChanged
     {
         get => _hasTime;
         set { _hasTime = value; OnChanged(nameof(HasTime)); RefreshDue(); }
+    }
+
+    // Pinned tasks sit above everything else in the list.
+    public bool Pinned
+    {
+        get => _pinned;
+        set { _pinned = value; OnChanged(nameof(Pinned)); }
     }
 
     // Only set when the item is archived.

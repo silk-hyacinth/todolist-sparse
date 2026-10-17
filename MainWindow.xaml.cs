@@ -15,8 +15,13 @@ public partial class MainWindow : Window
     private readonly ObservableCollection<TodoItem> _items = new();
     private readonly ObservableCollection<RecurringTask> _recurring = new();
 
-    // The recurring tasks currently due; these sit at the top of the list.
+    // What the list shows, top to bottom: pinned recurring tasks that are due,
+    // pinned one-offs, then the unpinned recurring tasks that are due, then the
+    // unpinned one-offs.
+    private readonly ListCollectionView _pinnedRecurring;
+    private readonly ListCollectionView _pinnedItems;
     private readonly ListCollectionView _recurringDue;
+    private readonly ListCollectionView _unpinnedItems;
 
     private readonly DispatcherTimer _clock = new() { Interval = TimeSpan.FromMinutes(1) };
 
@@ -42,17 +47,18 @@ public partial class MainWindow : Window
             _recurring.Add(task);
         }
 
-        _recurringDue = new ListCollectionView(_recurring)
-        {
-            Filter = task => ((RecurringTask)task).IsDue,
-        };
-        _recurringDue.SortDescriptions.Add(new SortDescription(nameof(RecurringTask.DueDate), ListSortDirection.Ascending));
-        _recurringDue.SortDescriptions.Add(new SortDescription(nameof(RecurringTask.Title), ListSortDirection.Ascending));
+        _pinnedRecurring = RecurringView(task => task.IsDue && task.Pinned);
+        _recurringDue = RecurringView(task => task.IsDue && !task.Pinned);
+        // One-offs keep _items' own due-date order, so these only filter.
+        _pinnedItems = new ListCollectionView(_items) { Filter = item => ((TodoItem)item).Pinned };
+        _unpinnedItems = new ListCollectionView(_items) { Filter = item => !((TodoItem)item).Pinned };
 
         List.ItemsSource = new CompositeCollection
         {
+            new CollectionContainer { Collection = _pinnedRecurring },
+            new CollectionContainer { Collection = _pinnedItems },
             new CollectionContainer { Collection = _recurringDue },
-            new CollectionContainer { Collection = _items },
+            new CollectionContainer { Collection = _unpinnedItems },
         };
 
         NewRepeat.ItemsSource = new List<RepeatOption> { RepeatOption.Once }.Concat(RepeatOption.Frequencies).ToList();
@@ -69,6 +75,14 @@ public partial class MainWindow : Window
         };
         _clock.Start();
         Activated += (_, _) => CheckRecurringClock();
+    }
+
+    private ListCollectionView RecurringView(Func<RecurringTask, bool> show)
+    {
+        var view = new ListCollectionView(_recurring) { Filter = task => show((RecurringTask)task) };
+        view.SortDescriptions.Add(new SortDescription(nameof(RecurringTask.DueDate), ListSortDirection.Ascending));
+        view.SortDescriptions.Add(new SortDescription(nameof(RecurringTask.Title), ListSortDirection.Ascending));
+        return view;
     }
 
     private static IEnumerable<TodoItem> Sorted(IEnumerable<TodoItem> items) =>
@@ -99,6 +113,7 @@ public partial class MainWindow : Window
     {
         var now = DateTime.Now;
         foreach (var task in _recurring) task.RefreshStatus();
+        _pinnedRecurring.Refresh();
         _recurringDue.Refresh();
         _nextRecurringChange = _recurring.Select(t => t.NextOccurrenceAt(now)).DefaultIfEmpty(DateTime.MaxValue).Min();
         UpdateNote();
@@ -215,6 +230,26 @@ public partial class MainWindow : Window
         Save();
     }
 
+    // Right-click > Pin / Unpin, for either kind of task.
+    private void Pin_Click(object sender, RoutedEventArgs e)
+    {
+        switch ((sender as FrameworkElement)?.DataContext)
+        {
+            case TodoItem item:
+                item.Pinned = !item.Pinned;
+                _pinnedItems.Refresh();
+                _unpinnedItems.Refresh();
+                break;
+            case RecurringTask task:
+                task.Pinned = !task.Pinned;
+                RefreshRecurring();
+                break;
+            default:
+                return;
+        }
+        Save();
+    }
+
     private void Recurring_Click(object sender, RoutedEventArgs e)
     {
         new RecurringWindow(_recurring, onChanged: () => { RefreshRecurring(); Save(); })
@@ -282,5 +317,5 @@ public partial class MainWindow : Window
     }
 
     private void UpdateNote() =>
-        EmptyNote.Text = $"{_items.Count + _recurringDue.Count} open · saved in {Storage.Folder}";
+        EmptyNote.Text = $"{_items.Count + _recurring.Count(t => t.IsDue)} open · saved in {Storage.Folder}";
 }

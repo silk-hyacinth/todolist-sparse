@@ -49,8 +49,27 @@
                      BorderBrush="Gray" BorderThickness="1">
                 <ListBox.Resources>
 
+                    <!-- Right-click menu for either kind of row. Not shared, so each row
+                         gets its own copy, bound to the task of the row it opens on. -->
+                    <ContextMenu x:Key="RowMenu" x:Shared="False"
+                                 DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                        <MenuItem Click="Pin_Click">
+                            <MenuItem.Style>
+                                <Style TargetType="MenuItem">
+                                    <Setter Property="Header" Value="Pin"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Pinned}" Value="True">
+                                            <Setter Property="Header" Value="Unpin"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </MenuItem.Style>
+                        </MenuItem>
+                    </ContextMenu>
+
                     <DataTemplate DataType="{x:Type local:RecurringTask}">
-                        <Grid Margin="0,3">
+                        <!-- transparent background so right-clicking anywhere on the row works -->
+                        <Grid Margin="0,3" Background="Transparent" ContextMenu="{StaticResource RowMenu}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
@@ -61,8 +80,18 @@
                                       Click="RecurringDone_Click"/>
                             <StackPanel Grid.Column="1">
                                 <TextBlock Text="{Binding Title}" TextWrapping="Wrap"/>
-                                <TextBlock Text="{Binding StatusText}" FontSize="10"
-                                           Foreground="{StaticResource RecurringAccent}"/>
+                                <TextBlock Text="{Binding StatusText}" FontSize="10">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Foreground" Value="{StaticResource RecurringAccent}"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Pinned}" Value="True">
+                                                    <Setter Property="Foreground" Value="{StaticResource PinnedAccent}"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
                             </StackPanel>
                             <Button Grid.Column="2" Content="edit" FontSize="10" Width="34" Height="20"
                                     VerticalAlignment="Top" Margin="6,0,2,0" Click="RecurringEdit_Click"/>
@@ -70,7 +99,7 @@
                     </DataTemplate>
 
                     <DataTemplate DataType="{x:Type local:TodoItem}">
-                        <Grid Margin="0,3">
+                        <Grid Margin="0,3" Background="Transparent" ContextMenu="{StaticResource RowMenu}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
@@ -80,7 +109,18 @@
                                       ToolTip="Check off and archive" Click="Done_Click"/>
                             <StackPanel Grid.Column="1">
                                 <TextBlock Text="{Binding Title}" TextWrapping="Wrap"/>
-                                <TextBlock Text="{Binding DueText}" FontSize="10" Foreground="{Binding DueColor}"/>
+                                <TextBlock Text="{Binding DueText}" FontSize="10">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Foreground" Value="{Binding DueColor}"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Pinned}" Value="True">
+                                                    <Setter Property="Foreground" Value="{StaticResource PinnedAccent}"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
                             </StackPanel>
                             <Button Grid.Column="2" Content="edit" FontSize="10" Width="34" Height="20"
                                     VerticalAlignment="Top" Margin="6,0,2,0" Click="Edit_Click"/>

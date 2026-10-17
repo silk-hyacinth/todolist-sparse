@@ -14,6 +14,7 @@ public class RecurringTask : INotifyPropertyChanged
     private DateTime _start;
     private bool _hasTime;
     private DateTime? _lastDone;
+    private bool _pinned;
 
     public string Title
     {
@@ -48,6 +49,13 @@ public class RecurringTask : INotifyPropertyChanged
     {
         get => _lastDone;
         set { _lastDone = value; OnChanged(nameof(LastDone)); RefreshStatus(); }
+    }
+
+    // Pinned tasks sit above everything else in the list.
+    public bool Pinned
+    {
+        get => _pinned;
+        set { _pinned = value; OnChanged(nameof(Pinned)); }
     }
 
     // Upcoming before its start. Otherwise it's due from each occurrence
@@ -97,7 +105,7 @@ public class RecurringTask : INotifyPropertyChanged
     // Archived as a TodoItem that remembers its schedule, so restoring it from
     // the archive brings it back as the same recurring task, not a one-off.
     public TodoItem ToArchive(DateTime removedAt) =>
-        new() { Title = _title, Recurs = _frequency, RecursFrom = _start, CompletedAt = removedAt };
+        new() { Title = _title, Recurs = _frequency, RecursFrom = _start, Pinned = _pinned, CompletedAt = removedAt };
 
     // A start at exactly midnight reads the same as one with no time.
     public static RecurringTask FromArchive(TodoItem item) => new()
@@ -106,6 +114,7 @@ public class RecurringTask : INotifyPropertyChanged
         Frequency = item.Recurs ?? Frequency.Daily,
         Start = item.RecursFrom ?? DateTime.Today,
         HasTime = item.RecursFrom is { TimeOfDay.Ticks: > 0 },
+        Pinned = item.Pinned,
     };
 
     public event PropertyChangedEventHandler? PropertyChanged;
